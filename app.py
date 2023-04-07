@@ -15,6 +15,7 @@ os.environ["OPENAI_API_KEY"] = os.environ.get("APIKEY")
 username = os.environ.get("USERNM")
 userpassword = os.environ.get("USERPW")
 ebdmdl = os.environ["EMBEDDINGMDL"]
+cmpmdl = os.environ["COMPLETIONMDL"]
 vector_store = "local"   # or "pinecone"
 indexfile = 'dataset\\index-test.json'
 
@@ -54,7 +55,7 @@ def chatbot(input_text):
     logging.info("Prompt:\n" + str(prompttext).strip())
 
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=cmpmdl,
         temperature=0.7,
         #n=2,
         messages=[
