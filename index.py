@@ -16,8 +16,8 @@ indexname = os.environ["PINECONEINDEX"]
 
 
 def construct_index(directory_path, vector_store):
-    max_input_size = 4096
-    num_outputs = 512
+    max_input_size = 2048
+    num_outputs = 2048
     max_chunk_overlap = 20
     chunk_size_limit = 600
 

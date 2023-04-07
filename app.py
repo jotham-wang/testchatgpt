@@ -23,8 +23,8 @@ pinecone.init(api_key=os.environ["PINECONEAPIKEY"], environment=os.environ['PINE
 indexname = os.environ["PINECONEINDEX"]
 
 def chatbot(input_text):
-    max_input_size = 4096
-    num_outputs = 512
+    max_input_size = 2048
+    num_outputs = 2048
     max_chunk_overlap = 20
     chunk_size_limit = 600
 
@@ -75,7 +75,7 @@ def chatbot(input_text):
     return str(response).strip(), str(completiontext).strip()
 
 iface = gr.Interface(fn=chatbot,
-                     inputs=gr.inputs.Textbox(lines=7, label="Enter your text"),
+                     inputs=gr.inputs.Textbox(lines=7, label="Enter your requirements"),
                      outputs=["text", "text"],
                      title="Test Case Generation Chatbot"
                      )

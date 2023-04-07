@@ -14,3 +14,9 @@ testchatgpt
 2. 本地知识库大模型：text-embedding-ada-002
 3. completion大模型：gpt-3.5-turbo
 4. dataset：local文件（pinecone还没有调通）
+
+使用方法：
+1. 输入一段需求的文字
+2. 点击submit
+3. 程序会首先搜索知识库，结果呈现在output1
+4. 程序会带着知识库的信息进一步产生测试案例，结果呈现在output2
