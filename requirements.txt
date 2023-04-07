@@ -1,0 +1,6 @@
+openai
+gpt_index
+PyPDF2
+gradio
+transformers
+pinecone-client
