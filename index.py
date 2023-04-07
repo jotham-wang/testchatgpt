@@ -103,6 +103,6 @@ def get_file_metadata(file_path):
 # main function
 
 inputdir = input("Type the source dir of docs (default to \'newdocs\' for insert, or \'docs\' for rebuild): ") or "newdocs"
-vecotrstore = input("Type the vector store to be used (default to \'pinecone\' for insert, other options include \'local\' : ") or "local"
+vecotrstore = input("Type the vector store to be used (default to \'local\' for insert, other options include \'pinecone\' : ") or "local"
 
 index = construct_index(inputdir, vecotrstore)
