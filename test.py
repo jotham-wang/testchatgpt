@@ -40,7 +40,7 @@ def excelGPT(inputtext, excel_file, sheet):
             {"role": "system", "content": "你是一个专业的测试设计人员，可以根据需求文档编写测试用例。你参考样例测试用例，结合需求文档中的业务规则，以markdown的形式输出一系列测试用例。"},
             {"role": "assistant", "content": "以下是样例测试用例：```" + tc.response + "```"},
             {"role": "user", "content": "以下是输入的需求文档：```" + req + "```"},
-            {"role": "user", "content": "根据输入的需求文档生成一套关于" + inputtext + "的测试用例。请忽略掉样例测试用例中与需求文档无关的测试用例。仅测试"},
+            {"role": "user", "content": "根据输入的需求文档生成一套关于" + inputtext + "的测试用例。请忽略掉样例测试用例中与需求文档无关的测试用例。"},
         ]
 
     )
