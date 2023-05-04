@@ -1,59 +1,150 @@
 import os
 
+import datasets
 import gradio as gr
 import openai
 import pandas as pd
 from gpt_index.indices.struct_store import GPTPandasIndex
 from huggingface_hub import hf_hub_download
+import time
+import logging
+import re
 
 
-def excel_gpt(req, keyword, excel_file, sheet):
+def kwfromhf(inputkws):
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
+    hfapi = os.environ["HFAPIKEY"]
+    hfrepo = os.environ["HFREPO"]
+
+    kwresult = datasets.load_dataset(hfrepo, data_files=inputkws, use_auth_token=hfapi)
+    kwlist = kwresult['train']['text']
+
+    kwstring = "\n".join(kwlist)
+
+    return kwstring
+
+
+def summarize_keywords(inputreq, inputkws):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
     cmpmdl = os.environ["COMPLETIONGMDL"]
+
+    start_time = time.time()
+    openai.api_key = openaiapi
+    messages = [
+        {"role": "system",
+         "content": "你是一个专业的需求分析人员，可以根据输入的需求文档总结出相关的业务功能。"},
+        {"role": "user", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
+        {"role": "assistant",
+         "content": "以下用triple backticks括起来的内容是业务功能列表，业务功能列表的格式是：<业务功能名称>:<业务功能描述>。：```" + inputkws + "```"},
+        {"role": "user",
+         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能。输出这些业务功能的名称，并用”#“号括起来。"}
+    ]
+    completion = openai.ChatCompletion.create(
+        model=cmpmdl,
+        temperature=0.5,  # 0 - 2
+        max_tokens=512,
+        # n=2,
+        messages=messages
+    )
+
+    resultstring = completion.choices[0].message.content
+
+    kwfromgpt = re.findall('#(.*?)#', resultstring)
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    logging.info("openai.ChatCompletion execution_time:" + str(execution_time))
+
+    logging.info("> [query] Total prompt token usage: " + str(completion.usage.prompt_tokens) + " tokens")
+    logging.info("> [query] Total completion token usage: " + str(completion.usage.completion_tokens) + " tokens")
+    logging.info("Keyword from ChatGPT: " + resultstring)
+
+    return kwfromgpt
+
+
+def get_sample_tc(keyword, excel_file, sheet):
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
     hfrepo = os.environ["HFREPO"]
+
+    if excel_file == "":
+        return ""
 
     # -------------------找到所有与keyword相关的测试用例--------------------
     localfilepath = hf_hub_download(repo_id=hfrepo, filename=excel_file, repo_type="dataset", token=hfapi)
     df = pd.read_excel(localfilepath, sheet_name=sheet)
     # print(df.to_string())
     index = GPTPandasIndex(df=df)
-    tc = index.query("选择出关于" + keyword + "的所有测试用例", verbose=True)
+    tcresult = index.query(
+        "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容：用例名称，测试步骤，预期结果，重要程度",
+        verbose=False)
     # ------------------------------------------------------------------
+    logging.info("Selected TCs by Keyword: " + tcresult.response)
+
+    return tcresult.response
+
+
+def query_chatgpt(inputreq, sampletc):
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
+    openaiapi = os.environ["OPENAIAPIKEY"]
+    cmpmdl = os.environ["COMPLETIONGMDL"]
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
+    start_time = time.time()
     openai.api_key = openaiapi
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0,  # 0 - 2
+        temperature=0.5,  # 0 - 2
         max_tokens=2048,
         # n=2,
         messages=[
             {"role": "system",
-             "content": "你是一个专业的测试设计人员，可以根据需求文档编写测试用例。你参考样例测试用例，结合需求文档中的业务规则，以markdown的形式输出一系列测试用例。"},
-            {"role": "assistant", "content": "以下是样例测试用例：```" + tc.response + "```"},
-            {"role": "user", "content": "以下是输入的需求文档：```" + req + "```"},
+             "content": "你是一个专业的测试设计人员，可以根据需求文档编写测试用例。你参考样例测试用例，结合需求文档中的业务规则，以json的形式输出一系列测试用例。"},
+            {"role": "assistant",
+             "content": "以下用triple backticks括起来的内容是json格式的样例测试用例：```" + sampletc + "```"},
+            {"role": "user", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
             {"role": "user",
-             "content": "根据输入的需求文档生成一套关于" + keyword + "的测试用例。请忽略掉样例测试用例中与需求文档无关的测试用例。"},
+             "content": "参考样例测试用例，根据输入的需求文档生成一套测试用例。请忽略掉样例测试用例中与需求文档无关的测试用例。"},
         ]
     )
     # ------------------------------------------------------------------
+    tcfromgpt = completion.choices[0].message.content
 
-    return completion.choices[0].message.content
+    end_time = time.time()
+    execution_time = end_time - start_time
+    logging.info("openai.ChatCompletion execution_time:" + str(execution_time))
+
+    logging.info("> [query] Total prompt token usage: " + str(completion.usage.prompt_tokens) + " tokens")
+    logging.info("> [query] Total completion token usage: " + str(completion.usage.completion_tokens) + " tokens")
+    logging.info("TCs generated by ChatGPT:\n" + tcfromgpt.strip())
+
+    return tcfromgpt
 
 
 def chatbot(req):
-    return excel_gpt(req, "银行转账", "samepletestcase.xlsx", "Sheet1")
+    kwlist = kwfromhf("keywords.txt")
+    keywords = summarize_keywords(req, kwlist)
+
+    sampletcs, tcs = "", ""
+    for key in keywords:
+        sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
+        sampletcs = sampletcs + "\n" + sampletc
+        tc = query_chatgpt(req, sampletc)
+        tcs = tcs + "\n" + tc
+
+    return sampletcs, tcs
 
 
 username = os.environ.get("USERNM")
 userpassword = os.environ.get("USERPW")
 
 iface = gr.Interface(fn=chatbot,
-                     inputs=gr.inputs.Textbox(lines=7, label="Enter your requirements"),
-                     outputs=["text"],
-                     title="Test Case Generation Chatbot"
+                     inputs=[gr.inputs.Textbox(lines=4, label="输入需求")],
+                     outputs=[gr.outputs.Textbox(label="测试用例库输出"),
+                              gr.outputs.Textbox(label="ChatGPT输出")],
+                     allow_flagging="never",
+                     title="Tinypace Test Case Generator"
                      )
 
 iface.launch(share=False, auth=(username, userpassword))
