@@ -15,7 +15,7 @@
 
 部署方法：
 1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
-2. 在space中上传依赖库requirements.txt和主程序app.py
+2. 在space右上的files tab中上传依赖库requirements.txt和主程序app.py
 3. 上传知识库中的测试用例excel：https://huggingface.co/datasets/tinypace/sampletextcase
 4. 更新知识库中的索引文件：https://huggingface.co/datasets/tinypace/sampletextcase/blob/main/keywords.txt
 5. 设置环境参数（参考本地的default.env文件）
@@ -24,7 +24,7 @@
 
 使用方法：
 1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
-2. 右上进入APP tab，然后输入用户名：tinypace，密码：zaq12wsx
+2. 右上进入app tab，然后输入用户名：tinypace，密码：zaq12wsx
 3. 输入一段需求的文字
 4. 点击submit
 5. 程序会首先搜索知识库中的案例，结果呈现在output1
