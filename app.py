@@ -9,6 +9,7 @@ from huggingface_hub import hf_hub_download
 import time
 import logging
 import re
+from prompt_templates import CHATGPT_PROMPT_TMPL
 
 
 def kwfromhf(inputkws):
@@ -92,6 +93,9 @@ def query_chatgpt(inputreq, sampletc):
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
     start_time = time.time()
+
+    prompttext = CHATGPT_PROMPT_TMPL.format()
+
     openai.api_key = openaiapi
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
@@ -105,7 +109,7 @@ def query_chatgpt(inputreq, sampletc):
              "content": "以下用triple backticks括起来的内容是json格式的样例测试用例：```" + sampletc + "```"},
             {"role": "user", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
             {"role": "user",
-             "content": "参考样例测试用例，根据输入的需求文档生成一套测试用例。请忽略掉样例测试用例中与需求文档无关的测试用例。"},
+             "content": prompttext},
         ]
     )
     # ------------------------------------------------------------------
@@ -125,6 +129,8 @@ def query_chatgpt(inputreq, sampletc):
 def chatbot(req):
     kwlist = kwfromhf("keywords.txt")
     keywords = summarize_keywords(req, kwlist)
+    if len(keywords) == 0:
+        return "", "无法根据输入的需求文档总结出有效的测试用例，请在需求文档中描述业务场景和规则。"
 
     sampletcs, tcs = "", ""
     for key in keywords:
