@@ -23,9 +23,10 @@
 7. 等待系统自动打包成docker镜像并部署
 
 使用方法：
-1. 登录huggingface.co打开space：
-2. 输入一段需求的文字
-3. 点击submit
-4. 程序会首先搜索知识库中的案例，结果呈现在output1
-5. 程序会带着知识库的信息进一步产生测试案例，结果呈现在output2
-6. 如果需要的话，调整prompt提示模板，等待系统重新自动打包部署
+1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
+2. 右上进入APP tab，然后输入用户名：tinypace，密码：zaq12wsx
+3. 输入一段需求的文字
+4. 点击submit
+5. 程序会首先搜索知识库中的案例，结果呈现在output1
+6. 程序会带着知识库的信息进一步产生测试案例，结果呈现在output2
+7. 如果需要的话，调整prompt提示模板，等待系统重新自动打包部署
