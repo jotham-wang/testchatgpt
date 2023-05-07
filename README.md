@@ -13,7 +13,7 @@
 4. 大模型：gpt-3.5-turbo
 5. 部署：huggingface.co
 
-部署方法：
+### 部署方法：
 1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
 2. 在space右上的files tab中上传依赖库requirements.txt和主程序app.py
 3. 上传知识库中的测试用例excel：https://huggingface.co/datasets/tinypace/sampletextcase
@@ -22,7 +22,7 @@
 6. 如果需求要的话，调整prompt提示模板：https://huggingface.co/spaces/tinypace/testcase/blob/main/prompt_templates.py
 7. 等待系统自动打包成docker镜像并部署
 
-使用方法：
+### 使用方法：
 1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
 2. 右上进入app tab，然后输入用户名：tinypace，密码：zaq12wsx
 3. 输入一段需求的文字
