@@ -15,9 +15,9 @@ from prompt_templates import CHATGPT_PROMPT_TMPL
 def kwfromhf(inputkws):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfrepo = os.environ["HFREPO"]
+    hfdsrepo= os.environ["HFDSREPO"]
 
-    kwresult = datasets.load_dataset(hfrepo, data_files=inputkws, use_auth_token=hfapi)
+    kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, use_auth_token=hfapi)
     kwlist = kwresult['train']['text']
 
     kwstring = "\n".join(kwlist)
@@ -67,13 +67,13 @@ def summarize_keywords(inputreq, inputkws):
 def get_sample_tc(keyword, excel_file, sheet):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfrepo = os.environ["HFREPO"]
+    hfdsrepo = os.environ["HFDSREPO"]
 
     if excel_file == "":
         return ""
 
     # -------------------找到所有与keyword相关的测试用例--------------------
-    localfilepath = hf_hub_download(repo_id=hfrepo, filename=excel_file, repo_type="dataset", token=hfapi)
+    localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=excel_file, repo_type="dataset", token=hfapi)
     df = pd.read_excel(localfilepath, sheet_name=sheet)
     # print(df.to_string())
     index = GPTPandasIndex(df=df)
