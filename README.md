@@ -24,7 +24,7 @@
 
 ### 使用方法：
 1. 登录huggingface.co打开space：https://huggingface.co/spaces/tinypace/testcase
-2. 右上进入app tab，然后输入用户名：tinypace，密码：zaq12wsx
+2. 右上进入app tab
 3. 输入一段需求的文字
 4. 点击submit
 5. 程序会首先搜索知识库中的案例，结果呈现在output1

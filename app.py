@@ -153,4 +153,5 @@ iface = gr.Interface(fn=chatbot,
                      title="Tinypace Test Case Generator"
                      )
 
-iface.launch(share=False, auth=(username, userpassword))
+#iface.launch(share=False, auth=(username, userpassword))
+iface.launch(share=False)
