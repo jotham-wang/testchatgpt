@@ -5,6 +5,7 @@
 2. 运行脚本：app.py
 3. prompt提示模板：prompt_templates.py
 4. 依赖库：requirements.txt
+5. 把gradio api包了一层的api调用方式：chatbot_api.py
 
 ### 使用的技术组件：
 1. 前端：gradio
