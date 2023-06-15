@@ -47,7 +47,7 @@ def summarize_keywords(inputreq, inputkws):
     ]
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0.5,  # 0 - 2
+        temperature=0,  # 0 - 2
         max_tokens=512,
         # n=2,
         messages=messages
@@ -112,7 +112,7 @@ def query_chatgpt(inputreq, sampletc):
     openai.api_key = openaiapi
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0.5,  # 0 - 2
+        temperature=0,  # 0 - 2
         max_tokens=2048,
         # n=2,
         messages=[
