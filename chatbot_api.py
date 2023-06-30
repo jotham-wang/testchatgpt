@@ -4,7 +4,7 @@ import os
 def chatbot_api(req):
 
     hfapi = os.environ["HFAPIKEY"]
-    hfsprepo = os.environ["HFSPREPO"]
+    hfsprepo = ""
 
     #client = Client("http://127.0.0.1:7860")
     client = Client(hfsprepo, hf_token=hfapi)
@@ -15,4 +15,4 @@ def chatbot_api(req):
 
     return result
 
-#print(chatbot_api("test"))
+print(chatbot_api("test"))

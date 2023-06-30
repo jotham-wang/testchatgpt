@@ -1,7 +1,6 @@
 import os
 
 import datasets
-import gradio as gr
 import openai
 import pandas as pd
 from gpt_index.indices.struct_store import GPTPandasIndex
@@ -11,15 +10,13 @@ import logging
 import re
 from prompt_templates import CHATGPT_PROMPT_TMPL
 
-openaiapi = "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"
-cmpmdl = "gpt-3.5-turbo"
 
 def kwfromhf(inputkws):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfrepo = os.environ["HFREPO"]
+    hfdsrepo= os.environ["HFDSREPO"]
 
-    kwresult = datasets.load_dataset(hfrepo, data_files=inputkws, use_auth_token=hfapi)
+    kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, use_auth_token=hfapi)
     kwlist = kwresult['train']['text']
 
     kwstring = "\n".join(kwlist)
@@ -28,11 +25,9 @@ def kwfromhf(inputkws):
 
 
 def summarize_keywords(inputreq, inputkws):
-    #os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
-    #openaiapi = os.environ["OPENAIAPIKEY"]
-    #cmpmdl = os.environ["COMPLETIONGMDL"]
-    
-
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
+    openaiapi = os.environ["OPENAIAPIKEY"]
+    cmpmdl = os.environ["COMPLETIONGMDL"]
 
     start_time = time.time()
     openai.api_key = openaiapi
@@ -43,11 +38,11 @@ def summarize_keywords(inputreq, inputkws):
         {"role": "assistant",
          "content": "以下用triple backticks括起来的内容是业务功能列表，业务功能列表的格式是：<业务功能名称>:<业务功能描述>。：```" + inputkws + "```"},
         {"role": "user",
-         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能。输出这些业务功能的名称，并用”#“号括起来。"}
+         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能。输出这些业务功能名称，并用”#“号将这些名称括起来。"}
     ]
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0,  # 0 - 2
+        temperature=0.5,  # 0 - 2
         max_tokens=512,
         # n=2,
         messages=messages
@@ -69,40 +64,31 @@ def summarize_keywords(inputreq, inputkws):
 
 
 def get_sample_tc(keyword, excel_file, sheet):
-    os.environ["OPENAI_API_KEY"] = "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"
-    #hfapi = os.environ["HFAPIKEY"]
-    #hfrepo = os.environ["HFREPO"]
-
-    hfapi = "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"
-
-    hfrepo = "tinypace/sampletextcase"
-    print("excel_file   ", excel_file)
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
+    hfapi = os.environ["HFAPIKEY"]
+    hfdsrepo = os.environ["HFDSREPO"]
 
     if excel_file == "":
         return ""
 
     # -------------------找到所有与keyword相关的测试用例--------------------
-    localfilepath = hf_hub_download(repo_id=hfrepo, filename=excel_file, repo_type="dataset", token=hfapi)
+    localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=excel_file, repo_type="dataset", token=hfapi)
     df = pd.read_excel(localfilepath, sheet_name=sheet)
-    #print(df.to_string())
+    # print(df.to_string())
     index = GPTPandasIndex(df=df)
-
-    print("index ", index)
-
     tcresult = index.query(
         "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容：用例名称，测试步骤，预期结果，重要程度",
         verbose=False)
     # ------------------------------------------------------------------
-
     logging.info("Selected TCs by Keyword: " + tcresult.response)
 
     return tcresult.response
 
 
 def query_chatgpt(inputreq, sampletc):
-    # os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
-    # openaiapi = os.environ["OPENAIAPIKEY"]
-    # cmpmdl = os.environ["COMPLETIONGMDL"]
+    os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
+    openaiapi = os.environ["OPENAIAPIKEY"]
+    cmpmdl = os.environ["COMPLETIONGMDL"]
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
     start_time = time.time()
@@ -112,7 +98,7 @@ def query_chatgpt(inputreq, sampletc):
     openai.api_key = openaiapi
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0,  # 0 - 2
+        temperature=0.5,  # 0 - 2
         max_tokens=2048,
         # n=2,
         messages=[
@@ -140,47 +126,17 @@ def query_chatgpt(inputreq, sampletc):
 
 
 def chatbot(req):
-    #kwlist = kwfromhf("keywords.txt")
-    kwlist = "<转账>:<指将资金从一个银行账户转移到另一个银行账户。> \
-              <查询>:<指查询银行账户信息，例如账户余额、交易记录等。> \
-              <开户>:<指在银行建立账户，需要提供有效证件和相关信息。>"
+    kwlist = kwfromhf("keywords.txt")
     keywords = summarize_keywords(req, kwlist)
     if len(keywords) == 0:
         return "", "无法根据输入的需求文档总结出有效的测试用例，请在需求文档中描述业务场景和规则。"
 
     sampletcs, tcs = "", ""
     for key in keywords:
-        #sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
-        sampletc = "[{'用例名称': '转账成功', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额\n6、输入验证码\n7、输入交易密码', '预期结果': '转账成功', '重要程度': '重要'}, {'用例名称': '提示金额大于每日转账剩余限额', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入大于当日转账限额的金额', '预期结果': '提示金额大于每日转账剩余限额', '重要程度': '一般'}, {'用例名称': '提示转账金额不能小于或等于0', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额为0', '预期结果': '提示转账金额不能小于或等于0', '重要程度': '一般'}, {'用例名称': '提示银行卡输入错误', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择错误收款银行\n4、选择付款卡\n5、输入金额\n6、输入验证码\n7、输入交易密码', '预期结果': '提示银行卡输入错误', '重要程度': '一般'}, {'用例名称': '提示输入收款账户错误', '测试步骤': '1、输入收款户名\n2、输入错误收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额\n6、输入验证码\n7、输入交易密码', '预期结果': '提示输入收款账户错误', '重要程度': '一般'}, {'用例名称': '提示输入收款户名错误', '测试步骤': '1、输入错误收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额\n6、输入验证码\n7、输入交易密码', '预期结果': '提示输入收款户名错误', '重要程度': '一般'}, {'用例名称': '提示金额大于年剩余转账限额', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入大于年限额的金额', '预期结果': '提示金额大于年剩余转账限额', '重要程度': '一般'}, {'用例名称': '提示当前账户余额不足', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入大于卡余额的金额', '预期结果': '提示当前账户余额不足', '重要程度': '一般'}, {'用例名称': '提示验证码错误', '测试步骤': '1、输入收款户名\n2、输入错误收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额\n6、输入错误验证码\n7、输入交易密码', '预期结果': '提示验证码错误', '重要程度': '一般'}, {'用例名称': '提示交易密码错误', '测试步骤': '1、输入收款户名\n2、输入收款账户\n3、选择收款银行\n4、选择付款卡\n5、输入金额\n6、输入验证码\n7、输入错误交易密码', '预期结果': '提示交易密码错误', '重要程度': '一般'}]"
+        sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
         sampletcs = sampletcs + "\n" + sampletc
         tc = query_chatgpt(req, sampletc)
         tcs = tcs + "\n" + tc
 
-    return tcs
+    return sampletcs, tcs
 
-if __name__ == '__main__':
-
-    req = "在银行转账服务中，客户需要提供受益人的姓名、账户号码和转账金额等信息。这些信息是必要的，以确保转账服务的准确性和可靠性。在提供这些信息时，客户还应注意确保其准确性和完整性，以免因输入错误的信息而导致转账失败或资金丢失的情况发生。因此，在进行转账操作时，客户应仔细检查所提供的信息，并确保其与实际情况相符。\n" + \
-    "在银行转账服务中，客户需要提供以下信息，以确保转账服务的准确性和可靠性：\n" + \
-    "- 受益人姓名\n" + \
-    "- 受益人账户号码\n" + \
-    "- 转账金额\n" + \
-    "如果受益人不是本行客户，系统应提示警告：受益人不是本行客户，转账不能及时到账。\n" + \
-    "在提供这些信息时，客户还应注意确保其准确性和完整性，以免因输入错误的信息而导致转账失败或资金丢失的情况发生。因此，在进行转账操作时，客户应仔细检查所提供的信息，并确保其与实际情况相符。\n"
-
-    chatbot(req)
-
-
-
-# username = os.environ.get("USERNM")
-# userpassword = os.environ.get("USERPW")
-
-# iface = gr.Interface(fn=chatbot,
-#                      inputs=[gr.inputs.Textbox(lines=4, label="输入需求")],
-#                      outputs=[gr.outputs.Textbox(label="测试用例库输出"),
-#                               gr.outputs.Textbox(label="ChatGPT输出")],
-#                      allow_flagging="never",
-#                      title="Tinypace Test Case Generator"
-#                      )
-
-# iface.launch(share=True, auth=(username, userpassword))
