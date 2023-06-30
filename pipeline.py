@@ -14,7 +14,7 @@ from prompt_templates import CHATGPT_PROMPT_TMPL
 def kwfromhf(inputkws):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfdsrepo= os.environ["HFDSREPO"]
+    hfdsrepo= "tinypace/sampletextcase"
 
     kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, use_auth_token=hfapi)
     kwlist = kwresult['train']['text']
@@ -27,7 +27,7 @@ def kwfromhf(inputkws):
 def summarize_keywords(inputreq, inputkws):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
-    cmpmdl = os.environ["COMPLETIONGMDL"]
+    cmpmdl = "gpt-3.5-turbo"
 
     start_time = time.time()
     openai.api_key = openaiapi
@@ -38,11 +38,11 @@ def summarize_keywords(inputreq, inputkws):
         {"role": "assistant",
          "content": "以下用triple backticks括起来的内容是业务功能列表，业务功能列表的格式是：<业务功能名称>:<业务功能描述>。：```" + inputkws + "```"},
         {"role": "user",
-         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能。输出这些业务功能名称，并用”#“号将这些名称括起来。"}
+         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能。输出这些业务功能名称，并用[]号将这些名称括起来。"}
     ]
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0.5,  # 0 - 2
+        temperature=0,  # 0 - 2
         max_tokens=512,
         # n=2,
         messages=messages
@@ -50,7 +50,8 @@ def summarize_keywords(inputreq, inputkws):
 
     resultstring = completion.choices[0].message.content
 
-    kwfromgpt = re.findall('#(.*?)#', resultstring)
+    pattern = r'\[(.*?)\]'
+    kwfromgpt = re.findall(pattern, resultstring)
 
     end_time = time.time()
     execution_time = end_time - start_time
@@ -66,7 +67,7 @@ def summarize_keywords(inputreq, inputkws):
 def get_sample_tc(keyword, excel_file, sheet):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfdsrepo = os.environ["HFDSREPO"]
+    hfdsrepo = "tinypace/sampletextcase"
 
     if excel_file == "":
         return ""
@@ -88,18 +89,18 @@ def get_sample_tc(keyword, excel_file, sheet):
 def query_chatgpt(inputreq, sampletc):
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
-    cmpmdl = os.environ["COMPLETIONGMDL"]
+    cmpmdl = "gpt-3.5-turbo-16k"
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
     start_time = time.time()
 
-    prompttext = CHATGPT_PROMPT_TMPL.format()
+    prompttext = CHATGPT_PROMPT_TMPL
 
     openai.api_key = openaiapi
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
-        temperature=0.5,  # 0 - 2
-        max_tokens=2048,
+        temperature=0,  # 0 - 2
+        # max_tokens=2048,
         # n=2,
         messages=[
             {"role": "system",
