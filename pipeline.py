@@ -17,7 +17,7 @@ def kwfromhf(inputkws):
 
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     hfapi = os.environ["HFAPIKEY"]
-    hfdsrepo= "tinypace/sampletextcase"
+    hfdsrepo = "tinypace/sampletextcase"
 
     kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, use_auth_token=hfapi)
     kwlist = kwresult['train']['text']
@@ -32,7 +32,7 @@ def summarize_keywords(inputreq, inputkws):
 
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
-    cmpmdl = "gpt-3.5-turbo"
+    cmpmdl = "gpt-3.5-turbo-16k"
 
     start_time = time.time()
     openai.api_key = openaiapi
@@ -43,8 +43,8 @@ def summarize_keywords(inputreq, inputkws):
         {"role": "assistant",
          "content": "以下用triple backticks括起来的内容是业务功能列表，业务功能列表的格式是：<业务功能名称>:<业务功能描述>。：```" + inputkws + "```"},
         {"role": "user",
-         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能，然后针对每个业务功能，从需求文档中找出相关的所有业务规则。"
-                    "输出json格式为：{业务功能名称:{1：业务规则,2：业务规则},业务功能名称:{1：业务规则,2：业务规则}。"}
+         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能（逐字逐句地），然后针对每个业务功能，从需求文档中找出相关的所有业务规则. "
+                    "输出json格式为：{业务功能名称:{1：业务规则,2：业务规则},业务功能名称:{1：业务规则,2：业务规则}. "}
     ]
     completion = openai.ChatCompletion.create(
         model=cmpmdl,
@@ -82,11 +82,15 @@ def get_sample_tc(keyword, excel_file, sheet):
     hfapi = os.environ["HFAPIKEY"]
     hfdsrepo = "tinypace/sampletextcase"
 
-    if excel_file == "":
-        return ""
+    defaultexcelfile = "Default.xlsx"
 
     # -------------------找到所有与keyword相关的测试用例--------------------
-    localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=excel_file, repo_type="dataset", token=hfapi)
+    try:
+        localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=excel_file, repo_type="dataset", token=hfapi)
+    except Exception as e:
+        print("读取样例TC文件失败，使用Default文件：", str(e))
+        localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=defaultexcelfile, repo_type="dataset", token=hfapi)
+
     df = pd.read_excel(localfilepath, sheet_name=sheet)
     # print(df.to_string())
     query_engine = PandasQueryEngine(df=df, verbose=True)
@@ -106,6 +110,9 @@ def query_chatgpt(inputreq, sampletc):
     cmpmdl = "gpt-3.5-turbo-16k"
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
+    if inputreq == "" or  inputreq == "{}":
+        return ""
+
     start_time = time.time()
 
     prompttext = CHATGPT_PROMPT_TMPL
@@ -150,13 +157,16 @@ def chatbot(req):
     pattern = r'\[(.*?)\]'
 
     for key in keywords:
+        keyreq = keywords[key]
+        if len(keyreq) == 0:
+            continue
+
         sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
         sampletclist = re.findall(pattern, sampletc)
         sampletcs = sampletcs + sampletclist
 
-        tc = query_chatgpt(str(keywords[key]), sampletc)
+        tc = query_chatgpt(str(keyreq), sampletc)
         tclist = re.findall(pattern, tc.replace("\n", ""))
         tcs = tcs + tclist
 
     return sampletcs, tcs
-
