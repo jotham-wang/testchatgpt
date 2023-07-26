@@ -19,7 +19,7 @@ def kwfromhf(inputkws):
     hfapi = os.environ["HFAPIKEY"]
     hfdsrepo = "tinypace/sampletextcase"
 
-    kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, use_auth_token=hfapi)
+    kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, token=hfapi)
     kwlist = kwresult['train']['text']
 
     kwstring = "\n".join(kwlist)
@@ -95,7 +95,7 @@ def get_sample_tc(keyword, excel_file, sheet):
     # print(df.to_string())
     query_engine = PandasQueryEngine(df=df, verbose=True)
     tcresult = query_engine.query(
-        "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容: 测试场景, 用例ID, 用例名称, 测试数据, 测试步骤, 预期结果, 重要程度")
+        "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
     # ------------------------------------------------------------------
     logging.info("Selected TCs by Keyword: \n" + tcresult.response)
 
