@@ -19,10 +19,15 @@ def kwfromhf(inputkws):
     hfapi = os.environ["HFAPIKEY"]
     hfdsrepo = "tinypace/sampletextcase"
 
-    kwresult = datasets.load_dataset(hfdsrepo, data_files=inputkws, token=hfapi)
-    kwlist = kwresult['train']['text']
-
-    kwstring = "\n".join(kwlist)
+    # -------------------查询keyword.txt--------------------
+    try:
+        localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=inputkws, repo_type="dataset", token=hfapi)
+        kwfile = open(localfilepath, 'r', encoding="utf-8")
+        kwstring = kwfile.read()
+        kwfile.close()
+    except Exception as e:
+        print("读取kyword索引文件失败，使用默认索引：", str(e))
+        kwstring = "<默认>:<无论何种需求都可以使用的默认样例测试用例>"
 
     return kwstring
 
@@ -38,12 +43,12 @@ def summarize_keywords(inputreq, inputkws):
     openai.api_key = openaiapi
     messages = [
         {"role": "system",
-         "content": "你是一个专业的需求分析人员，可以根据输入的需求文档总结出相关的业务功能和业务规则。"},
+         "content": "你是一个专业的需求分析人员，可以根据输入的需求文档选择出相关的业务功能，并总结出相关业务规则。如果需求文档与业务功能没有关系，回答无法总结出业务功能。"},
         {"role": "user", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
-        {"role": "assistant",
+        {"role": "user",
          "content": "以下用triple backticks括起来的内容是业务功能列表，业务功能列表的格式是：<业务功能名称>:<业务功能描述>。：```" + inputkws + "```"},
         {"role": "user",
-         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能（逐字逐句地），然后针对每个业务功能，从需求文档中找出相关的所有业务规则. "
+         "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能（逐字逐句地），然后针对每个业务功能，从需求文档中找出相关的所有业务规则。"
                     "输出json格式为：{业务功能名称:{1：业务规则,2：业务规则},业务功能名称:{1：业务规则,2：业务规则}. "}
     ]
     completion = openai.ChatCompletion.create(
@@ -82,13 +87,13 @@ def get_sample_tc(keyword, excel_file, sheet):
     hfapi = os.environ["HFAPIKEY"]
     hfdsrepo = "tinypace/sampletextcase"
 
-    defaultexcelfile = "Default.xlsx"
+    defaultexcelfile = "默认.xlsx"
 
     # -------------------找到所有与keyword相关的测试用例--------------------
     try:
         localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=excel_file, repo_type="dataset", token=hfapi)
     except Exception as e:
-        print("读取样例TC文件失败，使用Default文件：", str(e))
+        print("读取样例TC文件失败，使用默认测试用例文件：", str(e))
         localfilepath = hf_hub_download(repo_id=hfdsrepo, filename=defaultexcelfile, repo_type="dataset", token=hfapi)
 
     df = pd.read_excel(localfilepath, sheet_name=sheet)
@@ -161,7 +166,7 @@ def chatbot(req):
         if len(keyreq) == 0:
             continue
 
-        sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
+        sampletc = get_sample_tc(str(keyreq), key + ".xlsx", "Sheet1")
         sampletclist = re.findall(pattern, sampletc)
         sampletcs = sampletcs + sampletclist
 
