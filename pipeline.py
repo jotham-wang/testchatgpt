@@ -81,6 +81,7 @@ def summarize_keywords(inputreq, inputkws):
 
 
 def get_sample_tc(keyword, excel_file, sheet):
+    # 已知keyword没有使用，是因为下面的暂时屏蔽1
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
@@ -100,7 +101,10 @@ def get_sample_tc(keyword, excel_file, sheet):
     # print(df.to_string())
     query_engine = PandasQueryEngine(df=df, verbose=True)
     tcresult = query_engine.query(
-        "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
+        # ---- 暂时屏蔽1： 由于目前pandasqueryengine并不能理解keyword的语义，只是单纯将输入作为一个限制条件，所以导致总是筛选不出正确的案例，故暂时去掉 ----
+        # "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
+        # ---- end of 暂时屏蔽1 ------
+        "选择出关于的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
     # ------------------------------------------------------------------
     logging.info("Selected TCs by Keyword: \n" + tcresult.response)
 
@@ -155,6 +159,7 @@ def query_chatgpt(inputreq, sampletc):
 def chatbot(req):
     kwlist = kwfromhf("keywords.txt")
     keywords = summarize_keywords(req, kwlist)
+    # keywords is a dict looks like this: {'存款业务': {'1': '客户办理存入业务时，需要根据客户的客户登记确定其最小存入限额。', '2': '存入金额应该总是大于等于最小存入限额，否则不予办理。'}}
     if len(keywords) == 0:
         return "", "无法根据输入的需求文档总结出有效的测试用例，请在需求文档中描述业务场景和规则。"
 
@@ -166,7 +171,7 @@ def chatbot(req):
         if len(keyreq) == 0:
             continue
 
-        sampletc = get_sample_tc(str(keyreq), key + ".xlsx", "Sheet1")
+        sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
         sampletclist = re.findall(pattern, sampletc)
         sampletcs = sampletcs + sampletclist
 
