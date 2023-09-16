@@ -1,5 +1,5 @@
 openai==0.27.8
-gpt_index==0.6.38.post1
+gpt_index==0.8.27
 PyPDF2==3.0.1
 gradio==3.35.2
 transformers==4.30.2

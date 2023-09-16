@@ -104,7 +104,7 @@ def get_sample_tc(keyword, excel_file, sheet):
         # ---- 暂时屏蔽1： 由于目前pandasqueryengine并不能理解keyword的语义，只是单纯将输入作为一个限制条件，所以导致总是筛选不出正确的案例，故暂时去掉 ----
         # "选择出关于" + keyword + "的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
         # ---- end of 暂时屏蔽1 ------
-        "选择出关于的所有测试用例。以json的格式用unicode输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
+        "选择出关于的所有测试用例。以json的格式用中文输出以下字段内容: 用例编号, 测试场景, 用例名称, 前置条件, 测试数据, 测试步骤, 预期结果, 重要程度")
     # ------------------------------------------------------------------
     logging.info("Selected TCs by Keyword: \n" + tcresult.response)
 
@@ -173,10 +173,22 @@ def chatbot(req):
 
         sampletc = get_sample_tc(key, key + ".xlsx", "Sheet1")
         sampletclist = re.findall(pattern, sampletc)
-        sampletcs = sampletcs + sampletclist
+        if len(sampletclist) == 0:
+            sampletc = ""
+        else:
+            sampletcjson = json.loads("[" + sampletclist[0] + "]")
+            sampletcs = sampletcs + sampletcjson
 
         tc = query_chatgpt(str(keyreq), sampletc)
         tclist = re.findall(pattern, tc.replace("\n", ""))
-        tcs = tcs + tclist
+        if len(tclist) == 0:
+            tc = ""
+        else:
+            tcjson = json.loads("[" + tclist[0] + "]" )
+            tcs = tcs + tcjson
 
     return sampletcs, tcs
+
+
+# chatbot("摄像头设备的解绑 和 摄像头设备的告警两个需求")
+
