@@ -1,5 +1,9 @@
 from pipeline import chatbot
+import os
 import gradio as gr
+
+username = os.environ["USERNM"]
+userpassword = os.environ["USERPW"]
 
 if __name__ == '__main__':
     iface = gr.Interface(fn=chatbot,
