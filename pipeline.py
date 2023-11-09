@@ -193,5 +193,5 @@ def chatbot(req):
 
     return sampletcs, tcs
 
-chatbot("摄像头设备配置网络")
+# chatbot("摄像头设备配置网络")
 
