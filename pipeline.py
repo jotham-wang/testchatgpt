@@ -1,7 +1,7 @@
 import os
 import sys
 import datasets
-import openai
+from openai import OpenAI
 import pandas as pd
 from llama_index.query_engine import PandasQueryEngine
 from huggingface_hub import hf_hub_download
@@ -40,7 +40,9 @@ def summarize_keywords(inputreq, inputkws):
     cmpmdl = "gpt-3.5-turbo-16k"
 
     start_time = time.time()
-    openai.api_key = openaiapi
+    client = OpenAI(
+        api_key=openaiapi,  # this is also the default, it can be omitted
+    )
     messages = [
         {"role": "system",
          "content": "你是一个专业的需求分析人员，可以根据输入的需求文档选择出相关的业务功能，并总结出相关业务规则。如果需求文档与业务功能没有关系，回答无法总结出业务功能。"},
@@ -51,7 +53,7 @@ def summarize_keywords(inputreq, inputkws):
          "content": "根据需求文档用一句话总结出其相关的业务描述，然后根据这句话在业务功能列表中选择出最相关的一个或一组业务功能（逐字逐句地），然后针对每个业务功能，从需求文档中找出相关的所有业务规则。"
                     "输出json格式为：{业务功能名称:{1：业务规则,2：业务规则},业务功能名称:{1：业务规则,2：业务规则}. "}
     ]
-    completion = openai.ChatCompletion.create(
+    completion = client.chat.completions.create(
         model=cmpmdl,
         temperature=0,  # 0 - 2
         # max_tokens=512,
@@ -126,8 +128,10 @@ def query_chatgpt(inputreq, sampletc):
 
     prompttext = CHATGPT_PROMPT_TMPL
 
-    openai.api_key = openaiapi
-    completion = openai.ChatCompletion.create(
+    client = OpenAI(
+        api_key=openaiapi,  # this is also the default, it can be omitted
+    )
+    completion = client.chat.completions.create(
         model=cmpmdl,
         temperature=0,  # 0 - 2
         # max_tokens=2048,
@@ -189,6 +193,5 @@ def chatbot(req):
 
     return sampletcs, tcs
 
-
-# chatbot("摄像头设备的解绑 和 摄像头设备的告警两个需求")
+chatbot("摄像头设备配置网络")
 

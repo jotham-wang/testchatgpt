@@ -1,9 +1,9 @@
-openai==0.27.8
-gpt_index==0.8.27
+openai==1.2.0
+llama_index==0.8.65
 PyPDF2==3.0.1
-gradio==3.35.2
+gradio==4.1.1
 transformers==4.30.2
-pandas==2.0.3
+pandas==2.1.2
 datasets==2.14.0
 huggingface-hub==0.16.4
 openpyxl==3.1.2
