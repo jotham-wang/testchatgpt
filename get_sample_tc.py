@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download
 import logging
 
 
-def get_sample_tc(excel_file, sheet, keyword=None):
+def get_sample_tc(excel_file, sheet="Sheet1", keyword=None):
     # 已知keyword没有使用，是因为下面的暂时屏蔽1
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
