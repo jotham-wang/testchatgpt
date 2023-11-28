@@ -111,7 +111,7 @@ def query_chatgpt(inputreq, sampletc):
              "content": "你是一个专业的测试设计人员，可以根据需求文档编写测试用例。你参考样例测试用例，结合需求文档中的业务规则，以json的形式输出一系列测试用例。"},
             {"role": "assistant",
              "content": "以下用triple backticks括起来的内容是json格式的样例测试用例：```" + sampletc + "```"},
-            {"role": "user", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
+            {"role": "assistant", "content": "以下用triple backticks括起来的内容是输入的需求文档：```" + inputreq + "```"},
             {"role": "user",
              "content": prompttext},
         ]
@@ -135,7 +135,8 @@ def chatbot(req):
     keywords = summarize_keywords(req, kwlist)
     # keywords is a dict looks like this: {'存款业务': {'1': '客户办理存入业务时，需要根据客户的客户登记确定其最小存入限额。', '2': '存入金额应该总是大于等于最小存入限额，否则不予办理。'}}
     if len(keywords) == 0:
-        return "", "无法根据输入的需求文档总结出有效的测试用例，请在需求文档中描述业务场景和规则。"
+        logging.info("无法根据输入的需求文档总结出有效的测试用例，使用默认需求文档。")
+        keywords = {'默认': req}
 
     sampletcs, tcs = [], []
     pattern = r'\[(.*?)\]'
@@ -163,5 +164,5 @@ def chatbot(req):
 
     return sampletcs, tcs
 
-chatbot("摄像头设备配置网络")
+chatbot("银行转账")
 
