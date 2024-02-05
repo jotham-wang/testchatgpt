@@ -164,5 +164,5 @@ def chatbot(req):
 
     return sampletcs, tcs
 
-# chatbot("银行转账")
+chatbot("银行转账")
 
