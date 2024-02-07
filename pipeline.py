@@ -38,7 +38,7 @@ def summarize_keywords(inputreq, inputkws):
 
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
-    cmpmdl = "gpt-3.5-turbo-16k"
+    cmpmdl = "gpt-3.5-turbo-0125"
 
     start_time = time.time()
     client = OpenAI(
@@ -88,7 +88,7 @@ def query_chatgpt(inputreq, sampletc):
 
     os.environ["OPENAI_API_KEY"] = os.environ["OPENAIAPIKEY"]
     openaiapi = os.environ["OPENAIAPIKEY"]
-    cmpmdl = "gpt-3.5-turbo-16k"
+    cmpmdl = "gpt-3.5-turbo-0125"
 
     # -------------------由chatgpt编写出相关的测试用例----------------------
     if inputreq == "" or  inputreq == "{}":
@@ -103,7 +103,7 @@ def query_chatgpt(inputreq, sampletc):
     )
     completion = client.chat.completions.create(
         model=cmpmdl,
-        temperature=0,  # 0 - 2
+        temperature=0.7,  # 0 - 2
         # max_tokens=2048,
         # n=2,
         messages=[
